@@ -1,39 +1,83 @@
+using CUGOJ.Admin_Server.Dao;
 using System.Security.Cryptography;
 namespace CUGOJ.Admin_Server.Services;
 
 public static class LoginService
 {
-    public static bool Login(string username, string password)
+    public static async Task<bool> Login(string username, string password)
     {
-        var user = Dao.Dao.GetUser(username);
-        if (user == null)
+        return await Task.Run<bool>(() =>
         {
-            return false;
-        }
-        using var md5 = MD5.Create();
-        var hash = md5.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password + user.Salt));
-        return hash.ToString() == user.Password;
+            var user = Dao.Dao.GetUser(username);
+            if (user == null)
+            {
+                return false;
+            }
+            using var md5 = MD5.Create();
+            var hash = md5.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password + user.Salt));
+            return hash.ToString() == user.Password;
+        });
     }
 
-    public static int Logup(string username, string password, int role)
+    public static async Task<long> Logup(string username, string password, int role)
     {
         var user = Dao.Dao.GetUser(username);
         if (user != null)
         {
-            throw new Exception("用户名已存在");
+            return -1;
         }
         using var md5 = MD5.Create();
         var salt = new Random().NextInt64().ToString();
         var hash = md5.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password + salt));
         if (hash == null)
-            throw new Exception("密码加密失败");
-        Dao.Dao.SaveUsers(new Dao.User
+            return -1;
+        return await Dao.Dao.SaveUsers(new Dao.User
         {
             Username = username,
             Password = System.Text.Encoding.UTF8.GetString(hash),
             Salt = salt.ToString(),
             Role = role,
         });
-        return 0;
     }
+
+    public static async Task<bool> ChangePassword(string username, string oldPassword, string password)
+    {
+        if (!await Login(username, oldPassword))
+            return false;
+        var user = Dao.Dao.GetUser(username);
+        if (user == null)
+        {
+            return false;
+        }
+        using var md5 = MD5.Create();
+        var salt = new Random().NextInt64().ToString();
+        var hash = md5.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password + salt));
+        if (hash == null)
+            return false;
+        return (await Dao.Dao.SaveUsers(new Dao.User
+        {
+            Id = user.Id,
+            Username = username,
+            Password = System.Text.Encoding.UTF8.GetString(hash),
+            Salt = salt.ToString(),
+            Role = user.Role,
+        }) != -1);
+    }
+
+    public static void InitLoginService(WebApplication app)
+    {
+        app.MapPost("/login", (string username, string password) =>
+        {
+            return Login(username, password);
+        });
+        app.MapPost("/logup", (string username, string password) =>
+        {
+            return Logup(username, password, 2);
+        });
+        app.MapPost("/changePassword", (string username, string oldPassword, string password) =>
+        {
+            return ChangePassword(username, oldPassword, password);
+        });
+    }
+
 }

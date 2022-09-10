@@ -37,6 +37,13 @@ var summaries = new[]
     "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
 };
 
+HttpService.InitHttpService(app);
+
+app.MapPost("/test", () =>
+{
+    return "helloWorld";
+}).WithName("test");
+
 app.MapGet("/weatherforecast", () =>
 {
     var forecast = Enumerable.Range(1, 5).Select(index =>
@@ -50,6 +57,8 @@ app.MapGet("/weatherforecast", () =>
     return forecast;
 })
 .WithName("GetWeatherForecast");
+
+
 
 app.Run();
 

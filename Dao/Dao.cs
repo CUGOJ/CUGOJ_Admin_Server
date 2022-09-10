@@ -2,25 +2,28 @@ namespace CUGOJ.Admin_Server.Dao;
 
 public static class Dao
 {
-    public static void SaveUsers(User user)
+    public static async Task<long> SaveUsers(User user)
     {
         using var context = new Context();
         context.Users.Update(user);
-        context.SaveChanges();
+        await context.SaveChangesAsync();
+        return user.Id;
     }
 
-    public static void SaveCore(Core core)
+    public static long SaveCore(Core core)
     {
         using var context = new Context();
         context.Cores.Update(core);
         context.SaveChanges();
+        return core.Id;
     }
 
-    public static void SaveAuth(Auth auth)
+    public static long SaveAuth(Auth auth)
     {
         using var context = new Context();
         context.Auths.Update(auth);
         context.SaveChanges();
+        return auth.Id;
     }
 
     public static void SaveSysInfo(SysInfo info)
