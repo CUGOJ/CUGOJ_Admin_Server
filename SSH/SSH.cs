@@ -54,4 +54,6 @@ public static class SSH
             return false;
         }
     }
+
+    public static bool
 }
