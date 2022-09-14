@@ -19,7 +19,7 @@ public static class LoginService
         });
     }
 
-    public static async Task<long> Logup(string username, string password, int role)
+    public static long Logup(string username, string password, int role)
     {
         var user = Dao.Dao.GetUser(username);
         if (user != null)
@@ -31,7 +31,7 @@ public static class LoginService
         var hash = md5.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password + salt));
         if (hash == null)
             return -1;
-        return await Dao.Dao.SaveUsers(new Dao.User
+        return Dao.Dao.SaveUsers(new Dao.User
         {
             Username = username,
             Password = System.Text.Encoding.UTF8.GetString(hash),
@@ -54,7 +54,7 @@ public static class LoginService
         var hash = md5.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password + salt));
         if (hash == null)
             return false;
-        return (await Dao.Dao.SaveUsers(new Dao.User
+        return (Dao.Dao.SaveUsers(new Dao.User
         {
             Id = user.Id,
             Username = username,

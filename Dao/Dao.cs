@@ -2,11 +2,11 @@ namespace CUGOJ.Admin_Server.Dao;
 
 public static class Dao
 {
-    public static async Task<long> SaveUsers(User user)
+    public static long SaveUsers(User user)
     {
         using var context = new Context();
         context.Users.Update(user);
-        await context.SaveChangesAsync();
+        context.SaveChanges();
         return user.Id;
     }
 
