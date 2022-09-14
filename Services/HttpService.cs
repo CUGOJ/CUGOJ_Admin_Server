@@ -5,7 +5,7 @@ public static class HttpService
     public static void InitHttpService(WebApplication app)
     {
         LoginService.InitLoginService(app);
-
+        SSHService.InitSSHService(app);
     }
 
 
