@@ -1,4 +1,6 @@
+using System.Net;
 using CUGOJ.Admin_Server.Dao;
+using Microsoft.AspNetCore.Mvc;
 using System.Security.Cryptography;
 namespace CUGOJ.Admin_Server.Services;
 
@@ -15,7 +17,7 @@ public static class LoginService
             }
             using var md5 = MD5.Create();
             var hash = md5.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password + user.Salt));
-            return hash.ToString() == user.Password;
+            return System.Text.Encoding.UTF8.GetString(hash) == user.Password;
         });
     }
 
@@ -37,6 +39,7 @@ public static class LoginService
             Password = System.Text.Encoding.UTF8.GetString(hash),
             Salt = salt.ToString(),
             Role = role,
+            Token = string.Empty
         });
     }
 
@@ -61,22 +64,55 @@ public static class LoginService
             Password = System.Text.Encoding.UTF8.GetString(hash),
             Salt = salt.ToString(),
             Role = user.Role,
+            Token = user.Token
         }) != -1);
     }
 
+    record HttpLoginStruct
+    {
+        public string Username { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+    }
+
+    record HttpChangePasswordStruct
+    {
+        public string Username { get; set; } = string.Empty;
+        public string OldPassword { get; set; } = string.Empty;
+        public string NewPassword { get; set; } = string.Empty;
+    }
     public static void InitLoginService(WebApplication app)
     {
-        app.MapPost("/login", (string username, string password) =>
+        app.MapPost("/login", async (HttpContext context) =>
         {
-            return Login(username, password);
+            StreamReader reader = new StreamReader(context.Request.Body);
+            string body = await reader.ReadToEndAsync();
+            var loginStruct = System.Text.Json.JsonSerializer.Deserialize<HttpLoginStruct>(body);
+            if (loginStruct == null)
+            {
+                return false;
+            }
+            if (await Login(loginStruct.Username, loginStruct.Password))
+            {
+                var token = await Dao.Dao.GetToken(loginStruct.Username);
+                if (token != null)
+                {
+                    context.Response.Cookies.Append("token", token);
+                    context.Response.Cookies.Append("username", loginStruct.Username);
+                }
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         });
-        app.MapPost("/logup", (string username, string password) =>
+        app.MapPost("/logup", async (HttpLoginStruct loginStruct) =>
         {
-            return Logup(username, password, 2);
+            return await Logup(loginStruct.Username, loginStruct.Password, 2);
         });
-        app.MapPost("/changePassword", (string username, string oldPassword, string password) =>
+        app.MapPost("/changePassword", async (HttpChangePasswordStruct req) =>
         {
-            return ChangePassword(username, oldPassword, password);
+            return await ChangePassword(req.Username, req.OldPassword, req.NewPassword);
         });
     }
 

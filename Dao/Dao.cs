@@ -38,4 +38,17 @@ public static class Dao
         using var context = new Context();
         return context.Users.FirstOrDefault(u => u.Username == username);
     }
+
+
+    public static async Task<string?> GetToken(string username, string? lastToken = null)
+    {
+        using var context = new Context();
+        string token = Guid.NewGuid().ToString();
+        var user = (from u in context.Users where u.Username == username select u).First();
+        if (user == null) return null;
+        if (lastToken != null && user.Token != lastToken) return null;
+        user.Token = token;
+        await context.SaveChangesAsync();
+        return token;
+    }
 }

@@ -38,6 +38,8 @@ public class User
     public string Salt { get; set; } = null!;
     public int Role { get; set; } = 0;
     public int Status { get; set; } = 1;
+
+    public string Token { get; set; } = null!;
 }
 
 public class Core
