@@ -86,7 +86,11 @@ public static class LoginService
         {
             StreamReader reader = new StreamReader(context.Request.Body);
             string body = await reader.ReadToEndAsync();
-            var loginStruct = System.Text.Json.JsonSerializer.Deserialize<HttpLoginStruct>(body);
+            var loginStruct = System.Text.Json.JsonSerializer.Deserialize<HttpLoginStruct>(body, new System.Text.Json.JsonSerializerOptions
+            {
+                PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase,
+                DictionaryKeyPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
+            });
             if (loginStruct == null)
             {
                 return false;
@@ -96,8 +100,16 @@ public static class LoginService
                 var token = await Dao.Dao.GetToken(loginStruct.Username);
                 if (token != null)
                 {
-                    context.Response.Cookies.Append("token", token);
-                    context.Response.Cookies.Append("username", loginStruct.Username);
+                    context.Response.Cookies.Append("token", token, new CookieOptions()
+                    {
+                        Secure = true,
+                        SameSite = SameSiteMode.None
+                    });
+                    context.Response.Cookies.Append("username", loginStruct.Username, new CookieOptions()
+                    {
+                        Secure = true,
+                        SameSite = SameSiteMode.None
+                    });
                 }
                 return true;
             }

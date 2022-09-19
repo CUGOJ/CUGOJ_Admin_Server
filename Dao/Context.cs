@@ -46,6 +46,8 @@ public class User
 public class Core
 {
     public long Id { get; set; }
+    public string Host { get; set; } = null!;
+    public string IP { get; set; } = null!;
     public string Env { get; set; } = null!;
     public int Port { get; set; } = 0;
     public string LogPath { get; set; } = null!;
@@ -55,6 +57,7 @@ public class Core
     public string Neo4jPath { get; set; } = null!;
     public string RabbitmqPath { get; set; } = null!;
     public int Status { get; set; } = 1;
+    public string Branch { get; set; } = null!;
 }
 
 public class Auth

@@ -6,6 +6,8 @@ public static class HttpService
     {
         LoginService.InitLoginService(app);
         SSHService.InitSSHService(app);
+        SysService.InitSysService(app);
+        CoreService.InitCoreService(app);
     }
 
 
